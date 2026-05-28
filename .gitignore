@@ -1,3 +1,6 @@
+data/voice_input/*
+data/voice_output/*
+data/voice_ref/*
 .DS_Store
 .vscode
 __pycache__

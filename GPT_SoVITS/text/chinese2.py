@@ -3,7 +3,60 @@ import re
 
 import cn2an
 from pypinyin import lazy_pinyin, Style
-from pypinyin.contrib.tone_convert import to_finals_tone3, to_initials
+try:
+    from pypinyin.contrib.tone_convert import to_finals_tone3, to_initials
+except Exception:
+    _INITIALS = [
+        "zh",
+        "ch",
+        "sh",
+        "b",
+        "p",
+        "m",
+        "f",
+        "d",
+        "t",
+        "n",
+        "l",
+        "g",
+        "k",
+        "h",
+        "j",
+        "q",
+        "x",
+        "r",
+        "z",
+        "c",
+        "s",
+        "y",
+        "w",
+    ]
+
+    def _split_pinyin(py: str):
+        tone = "5"
+        base = py.lower()
+        if base and base[-1].isdigit():
+            tone = base[-1]
+            base = base[:-1]
+        ini = ""
+        for cand in _INITIALS:
+            if base.startswith(cand):
+                ini = cand
+                break
+        fin = base[len(ini) :]
+        return ini, fin, tone
+
+    def to_initials(py: str):
+        ini, _, _ = _split_pinyin(py)
+        return ini
+
+    def to_finals_tone3(py: str, neutral_tone_with_five=True):
+        _, fin, tone = _split_pinyin(py)
+        if not fin:
+            return py
+        if tone == "5" and not neutral_tone_with_five:
+            return fin
+        return f"{fin}{tone}"
 
 from text.symbols import punctuation
 from text.tone_sandhi import ToneSandhi
