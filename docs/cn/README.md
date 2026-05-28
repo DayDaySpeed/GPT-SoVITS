@@ -44,6 +44,8 @@
 
 **用户手册: [简体中文](https://www.yuque.com/baicaigongchang1145haoyuangong/ib3g1e) | [English](https://rentry.co/GPT-SoVITS-guide#/)**
 
+**自动化训练脚本文档: [AutoTrainPipeline_CN](./AutoTrainPipeline_CN.md)**
+
 ## 安装
 
 中国地区的用户可[点击此处](https://www.codewithgpu.com/i/RVC-Boss/GPT-SoVITS/GPT-SoVITS-Official)使用 AutoDL 云端镜像进行体验.

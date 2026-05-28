@@ -6,7 +6,11 @@ import os
 from pypinyin.constants import RE_HANS
 from pypinyin.core import Pinyin, Style
 from pypinyin.seg.simpleseg import simple_seg
-from pypinyin.converter import UltimateConverter
+try:
+    from pypinyin.converter import UltimateConverter
+except ImportError:
+    # 兼容较新的 pypinyin 版本：UltimateConverter 已移除，DefaultConverter 可替代
+    from pypinyin.converter import DefaultConverter as UltimateConverter
 from pypinyin.contrib.tone_convert import to_tone
 from .onnx_api import G2PWOnnxConverter
 
