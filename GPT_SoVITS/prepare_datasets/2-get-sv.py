@@ -23,7 +23,7 @@ import torchaudio
 now_dir = os.getcwd()
 sys.path.append(now_dir)
 sys.path.append(f"{now_dir}/GPT_SoVITS/eres2net")
-from tools.my_utils import clean_path
+from tools.my_utils import clean_path, load_audio
 from time import time as ttime
 import shutil
 from ERes2NetV2 import ERes2NetV2
@@ -89,9 +89,8 @@ def name2go(wav_name, wav_path):
     if os.path.exists(sv_cn_path):
         return
     wav_path = "%s/%s" % (wav32dir, wav_name)
-    wav32k, sr0 = torchaudio.load(wav_path)
-    assert sr0 == 32000
-    wav32k = wav32k.to(device)
+    # 避免 torchaudio 2.11+ 默认 torchcodec（依赖 libnppicc 等 CUDA 库）
+    wav32k = torch.from_numpy(load_audio(wav_path, 32000)).unsqueeze(0).to(device)
     emb = sv.compute_embedding3(wav32k).cpu()  # torch.Size([1, 20480])
     my_save(emb, sv_cn_path)
 

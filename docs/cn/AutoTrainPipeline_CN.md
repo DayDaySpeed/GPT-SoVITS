@@ -127,8 +127,8 @@ python tools/auto_train_pipeline.py \
 ```bash
 python tools/auto_train_pipeline.py \
   --stage all \
-  --audio-path data/voice_input/aaa \
-  --version v2 \
+  --audio-path data/voice_input/luo \
+  --version v2Pro \
   --gpu-id 0 \
   --preset auto \
   --slice-workers 4 \

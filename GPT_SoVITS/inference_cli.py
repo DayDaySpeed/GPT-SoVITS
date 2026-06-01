@@ -33,6 +33,27 @@ DEFAULTS_LONG_POEM_ZH = {
 }
 
 
+def patch_torchaudio_load_for_cli():
+    """CLI 专用：用 soundfile 替代 torchaudio 2.11 的 torchcodec，不改动 inference_webui。"""
+    import torch
+    import torchaudio
+
+    if getattr(torchaudio.load, "_gptsovits_cli_patch", False):
+        return
+
+    def _load(uri, *args, **kwargs):
+        channels_first = kwargs.get("channels_first", True)
+        data, sr = sf.read(str(uri), dtype="float32", always_2d=True)
+        if channels_first:
+            tensor = torch.from_numpy(data.T.copy())
+        else:
+            tensor = torch.from_numpy(data.copy())
+        return tensor, sr
+
+    _load._gptsovits_cli_patch = True
+    torchaudio.load = _load
+
+
 def resolve_how_to_cut(value: str) -> str:
     key = HOW_TO_CUT_KEYS.get(value, value)
     if key not in HOW_TO_CUT_KEYS.values():
@@ -63,6 +84,7 @@ def synthesize(
     os.environ["gpt_path"] = GPT_model_path
     os.environ["sovits_path"] = SoVITS_model_path
     os.environ.setdefault("language", "zh_CN")
+    patch_torchaudio_load_for_cli()
     from GPT_SoVITS.inference_webui import change_gpt_weights, change_sovits_weights, get_tts_wav
 
     with open(ref_text_path, "r", encoding="utf-8") as file:
