@@ -10,8 +10,18 @@ from modelscope import snapshot_download as snapshot_download_ms
 from tqdm import tqdm
 
 from tools.asr.config import get_models
-from tools.asr.funasr_asr import only_asr
 from tools.my_utils import load_cudnn
+
+
+def _only_asr(input_file, language):
+    """中文/粤语时可选走 FunASR；延迟导入，避免启动即加载 torchaudio/funasr。"""
+    try:
+        from tools.asr.funasr_asr import only_asr
+
+        return only_asr(input_file, language=language)
+    except Exception as e:
+        print(f"[WARN] FunASR 不可用，回退 Whisper 文本: {e}")
+        return ""
 
 # fmt: off
 language_code_list = [
@@ -128,7 +138,7 @@ def execute_asr(input_folder, output_folder, model_path, language, precision):
 
             if info.language in ["zh", "yue"]:
                 print("检测为中文文本, 转 FunASR 处理")
-                text = only_asr(file_path, language=info.language.lower())
+                text = _only_asr(file_path, language=info.language.lower())
 
             if text == "":
                 for segment in segments:

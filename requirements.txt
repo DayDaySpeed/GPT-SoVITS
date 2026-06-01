@@ -15,8 +15,8 @@ cn2an
 pypinyin
 pyopenjtalk>=0.4.1
 g2p_en
-torchaudio
-modelscope
+# torchaudio: install.sh 与 torch 同索引安装，避免 PyPI 版与 cu128 不匹配
+modelscope[audio]
 sentencepiece
 transformers>=4.43,<=4.50
 peft<0.18.0

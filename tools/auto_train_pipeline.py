@@ -81,9 +81,30 @@ VERSION_WEIGHT_DIR = {
 }
 
 
+def ensure_pythonpath(env: dict | None = None) -> dict:
+    """与 webui users.pth 一致，供 tools.* / text.* / AR.* 等子进程导入。"""
+    merged = (env or os.environ).copy()
+    existing = merged.get("PYTHONPATH", "")
+    parts = [p for p in existing.split(os.pathsep) if p]
+    prefix = []
+    for path in (
+        ROOT,
+        ROOT / "GPT_SoVITS" / "BigVGAN",
+        ROOT / "tools",
+        ROOT / "tools" / "asr",
+        ROOT / "GPT_SoVITS",
+        ROOT / "tools" / "uvr5",
+    ):
+        entry = str(path)
+        if entry not in prefix and entry not in parts:
+            prefix.append(entry)
+    merged["PYTHONPATH"] = os.pathsep.join([*prefix, *parts])
+    return merged
+
+
 def run_cmd(cmd, env=None):
     print("[CMD]", " ".join(str(i) for i in cmd))
-    subprocess.run(cmd, cwd=ROOT, check=True, env=env)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=ensure_pythonpath(env))
 
 
 def run_cmd_with_retry(cmd, env=None, retries: int = 3, base_delay_sec: float = 3.0, retry_label: str = ""):
@@ -251,6 +272,15 @@ def ask_prepare_conflict_action(existing_prepare_dir: Path) -> str:
         print("输入无效，请输入 1 或 2。")
 
 
+def discover_reviewed_list(prepare_dir: Path) -> Path | None:
+    """prepare 完成后默认标注：asr_opt/*.cleaned.list（取最新修改）。"""
+    asr_opt = prepare_dir / "asr_opt"
+    if not asr_opt.is_dir():
+        return None
+    candidates = sorted(asr_opt.glob("*.cleaned.list"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates[0] if candidates else None
+
+
 def assert_reviewed_list_in_work_dir(list_path: Path, work_dir: Path):
     try:
         list_path.resolve().relative_to(work_dir.resolve())
@@ -274,7 +304,10 @@ def preflight_check(stage: str):
 
     if stage in {"prepare", "all"}:
         if not check_python_module("modelscope"):
-            missing.append(("modelscope", 'python -m pip install "modelscope[audio]"'))
+            missing.append(("modelscope[audio]", 'python -m pip install "modelscope[audio]"'))
+        elif not check_python_module("sortedcontainers"):
+            # modelscope 本体已装但缺 audio 额外依赖时，sortedcontainers 通常最先暴露
+            missing.append(("modelscope[audio]", 'python -m pip install "modelscope[audio]"'))
         if not check_python_module("addict"):
             missing.append(("addict", "python -m pip install addict"))
         if not check_python_module("faster_whisper"):
@@ -911,6 +944,12 @@ def main():
         print(f"[INFO] 任务名: {task_name}")
         print(f"[INFO] prepare 目录: {prepare_dir}")
         print(f"[INFO] train 目录: {train_dir}")
+
+        if args.stage == "train" and reviewed_for_resolve is None:
+            auto_list = discover_reviewed_list(prepare_dir)
+            if auto_list is not None:
+                reviewed_for_resolve = auto_list.resolve()
+                print(f"[INFO] 未指定 --reviewed-list，使用: {reviewed_for_resolve}")
 
         is_half = args.asr_precision == "float16"
         generated_list = None
