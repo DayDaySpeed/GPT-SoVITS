@@ -1,0 +1,15 @@
+[Unit]
+Description=GPT-SoVITS API v2 Service
+After=network.target
+
+[Service]
+Type=simple
+User=jiang
+WorkingDirectory=/home/jiang/projs/projects2026/GPT-SoVITS
+ExecStart=/bin/bash -lc 'source ~/miniconda3/etc/profile.d/conda.sh && conda activate GPTSoVits && python api_v2.py -a 0.0.0.0 -p 9880 -c GPT_SoVITS/configs/my_tts_infer.yaml'
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
