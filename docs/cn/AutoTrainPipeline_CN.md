@@ -2,6 +2,74 @@
 
 脚本：`tools/auto_train_pipeline.py`
 
+## 运行前：激活 Python 环境
+
+建议所有命令都在同一个环境下执行，避免出现 `ModuleNotFoundError`（例如 `soundfile`）。
+
+### 方式 A：venv（推荐）
+
+在仓库根目录执行：
+
+```bash
+# 只需创建一次
+python -m venv .venv
+
+# 每次新开终端后先激活
+source .venv/bin/activate
+
+# 安装依赖（按项目实际方式）
+python -m pip install -U pip
+python -m pip install -r requirements.txt
+```
+
+激活后，提示符前通常会出现 `(.venv)`。
+
+退出环境：
+
+```bash
+deactivate
+```
+
+### 方式 B：conda（与项目 README 一致）
+
+```bash
+# 只需创建一次
+conda create -n GPTSoVits python=3.10 -y
+
+# 每次新开终端后先激活
+conda activate GPTSoVits
+
+# 安装依赖（按项目实际方式）
+python -m pip install -U pip
+python -m pip install -r requirements.txt
+```
+
+退出环境：
+
+```bash
+conda deactivate
+```
+
+如果你已经按项目文档创建过环境，通常只需要这一条：
+
+```bash
+conda activate GPTSoVits
+```
+
+### 自检（建议每次跑训练/推理前执行）
+
+```bash
+which python
+python -V
+python -c "import soundfile; print('soundfile ok')"
+```
+
+如果上面最后一条失败，先安装：
+
+```bash
+python -m pip install soundfile
+```
+
 ## 目录规则
 
 如果输入是 `data/voice_input/aaa/`，则：
@@ -116,17 +184,16 @@ data/voice_train/aaa/
 
 ```bash
 python GPT_SoVITS/inference_cli.py \
-  --gpt_model GPT_weights_v2/my_voice_v2_train_v3-e12.ckpt \
-  --sovits_model SoVITS_weights_v2/my_voice_v2_train_v3_e20_s1240.pth \
+  --gpt_model GPT_weights_v2/yizhijiu_v2_train_v3-e12.ckpt \
+  --sovits_model SoVITS_weights_v2/yizhijiu_v2_train_v3_e20_s1240.pth \
   --ref_audio data/voice_ref/ref.wav \
   --ref_text data/voice_ref/ref.txt \
   --ref_language 中文 \
   --target_text data/voice_ref/target.txt \
   --target_language 中文 \
   --output_path data/voice_ref/ref_out/ \
-  --output_name 长恨歌line.wav \
+  --output_name 早上好.wav \
   --line_by_line
-
 ```
 
 输出文件：
