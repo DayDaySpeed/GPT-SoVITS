@@ -196,14 +196,17 @@ if [ "$(uname)" != "Darwin" ]; then
         echo -e "${INFO}Detected GCC Version: $gcc_major_version"
         echo -e "${INFO}Skip Installing GCC & G++ From Conda-Forge"
         echo -e "${INFO}Installing libstdcxx-ng From Conda-Forge"
-        # Arch GCC 16+: conda 尚无 libstdcxx-ng>=16，装最新版即可
-        if [ "$gcc_major_version" -gt 15 ]; then
-            run_conda_quiet libstdcxx-ng
-            echo -e "${SUCCESS}libstdcxx-ng (latest) Installed..."
+        # conda-forge may not ship libstdcxx-ng>=N for very new system GCC (e.g. 16+ on Arch).
+        LIBSTDCXX_CONDA_MAX_MAJOR=15
+        if [ "$gcc_major_version" -gt "$LIBSTDCXX_CONDA_MAX_MAJOR" ]; then
+            libstdcxx_pkg="libstdcxx-ng"
+            libstdcxx_pin_desc="latest (system GCC ${gcc_major_version})"
         else
-            run_conda_quiet "libstdcxx-ng>=$gcc_major_version"
-            echo -e "${SUCCESS}libstdcxx-ng=$gcc_major_version Installed..."
+            libstdcxx_pkg="libstdcxx-ng>=${gcc_major_version}"
+            libstdcxx_pin_desc=">=${gcc_major_version}"
         fi
+        run_conda_quiet "$libstdcxx_pkg"
+        echo -e "${SUCCESS}libstdcxx-ng ${libstdcxx_pin_desc} Installed..."
     fi
 else
     if ! xcode-select -p &>/dev/null; then
